@@ -1,0 +1,30 @@
+<?php
+
+/**
+ * Шаблон Visitor позволяет добавлять новое поведение без изменения существующих классов.
+ * В результате: клиенты создают объекты Visitor с нужным поведением и передают их каждому объекту Element, вызывая
+ * accept().
+ * В отличие от шаблона Strategy, цель которого выбрать как выполнить одно конкретное действие, добавляет новые операции
+ * для целой группы объектов, не меняя их классы.
+ * Шаблон выполнения задач и представления результатов (поведенческий).
+ */
+interface Visitor
+{
+    public function visit(Book $book): void;
+}
+
+class Book
+{
+    public function accept(Visitor $visitor): void
+    {
+        $visitor->visit($this);
+    }
+}
+
+class PrintVisitor implements Visitor
+{
+    public function visit(Book $book): void
+    {
+        echo 'Book visited';
+    }
+}
