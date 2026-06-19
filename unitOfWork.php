@@ -20,5 +20,7 @@ class UnitOfWork
         }
 
         $this->new = [];
+
+        echo 'commit';
     }
 }
