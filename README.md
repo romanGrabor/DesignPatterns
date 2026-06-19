@@ -1,10 +1,12 @@
 # Шаблоны проектировния.
 
 ## Примеры вызова и применение:
+
 ```php 
 /**
  * Шаблон Singleton гарантирует существование только одного экземпляра объекта.
- * Применим для реализации классов подключения к БД, конфигурации приложения и т. п.
+ * Применим для реализации классов подключения к БД (чтобы не увеличивалось количество подключений), конфигурации
+ * приложения и т. п.
  *
  * Но антипаттерн, так как создает глобальное состояние и усложняет тестирование.
  * Шаблон генерации объектов.
@@ -21,9 +23,11 @@ $db2 = Database::getInstance();
  * Шаблон Factory Method скрывает создание объекта, когда клиентский код не должен знать конкретный класс.
  *
  * Клиентский код ожидает получения объекта типа Transport и не обязательно должен знать о конкретной реализации.
+ * Например, не важно какой автомобиль: Lada или BMW.
  * Шаблон генерации объектов.
  */
 require_once 'factoryMethod.php';
+
 $factory = new CarFactory();
 
 //echo $factory->create()->move();
@@ -34,6 +38,7 @@ $factory = new CarFactory();
  * Шаблон генерации объектов.
  */
 require_once 'abstractFactory.php';
+
 $abstractFactory = new BootstrapFactory();
 
 //echo $abstractFactory->createButton()->render();
@@ -47,6 +52,7 @@ $abstractFactory = new BootstrapFactory();
  * Шаблон баз данных.
  */
 require_once 'dataMapper.php';
+
 $pdo = new PDO('sqlite::memory:');
 $pdo->exec(
 'CREATE TABLE users(
@@ -88,7 +94,7 @@ $user = new User('1', 'Алиса');
 
 $map->add($user);
 
-//var_dump($map->get('1'));
+//var_dump($map->get('1') === $map->get('1'));
 //===================================
 
 /**
@@ -97,13 +103,12 @@ $map->add($user);
  */
 require_once 'unitOfWork.php';
 
-$map = new IdentityMap();
+$unitOfWork = new UnitOfWork();
 
-$user = new User('1', 'Алиса');
+$unitOfWork->registerNew(new User('1', 'Алиса'));
+$unitOfWork->registerNew(new User('2', 'Боб'));
 
-$map->add($user);
-
-//var_dump($map->get('1'));
+//$unitOfWork->commit(new UserDataMapper($pdo));
 //===================================
 
 /**
@@ -168,21 +173,23 @@ $div->add(new TextNode());
 
 /**
  * Шаблон Prototype предназначен для создания объекта через копирование. Полезен при работе с тяжелыми объектами.
+ * Если свойства исходного объекта содержат ссылки на другие объекты, то их значения не клонируются, а будут содержать
+ * ссылки на эти же объекты. Для исключения данной ситуации в объекте необходимо реализовать метод __clone, где данные
+ * свойства принудительно клонируются.
  * Шаблон генерации объектов.
  */
 require_once 'prototype.php';
 
-$user1 = new UserPrototype();
-
-$user1->name = 'Алиса';
+$user1 = new UserPrototype('Алиса');
 
 $user2 = clone $user1;
 
-$user2->name = 'Боб';
+$user2->setName('Боб');
 
-//echo $user1->name;
+//echo $user1->getName();
 //echo PHP_EOL;
-//echo $user2->name;
+//echo $user2->getName();
+//var_dump($user1->getUser() === $user2->getUser());
 //===================================
 
 /**
@@ -211,9 +218,10 @@ $logger = new NullLogger();
 //===================================
 
 /**
- * Шаблон Front Controller предназначен для создания одной точки входа для всех запросов. Контроллер анализирует URL,
- * заголовки или параметры запроса и передает запрос конкретному обработчику Action/Controller.
- * Результат от Action/Controller возвращается обратно на фронт-контроллер для отправки клиенту.
+ * Шаблон Front Controller предназначен для создания одной точки входа для всех запросов. Front Controller принимает все
+ * входящие HTTP-запросы в одном месте, выполняет общую обработку (маршрутизация, авторизация, логирование, обработка
+ * ошибок и т.д.) и передает управление соответствующему контроллеру или действию (Action).
+ * Контроллер формирует ответ, который затем может быть дополнительно обработан Front Controller и отправлен клиенту.
  * Шаблон корпоративных приложений (Enterprise Patterns).
  */
 require_once 'frontController.php';
@@ -240,6 +248,14 @@ require_once 'looseCoupling.php';
 require_once 'visitor.php';
 
 $book = new Book();
+
+class PrintVisitor implements Visitor
+{
+    public function visit(Book $book): void
+    {
+        echo 'Book visited';
+    }
+}
 
 //$book->accept(new PrintVisitor());
 //===================================
