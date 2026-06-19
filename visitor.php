@@ -20,11 +20,3 @@ class Book
         $visitor->visit($this);
     }
 }
-
-class PrintVisitor implements Visitor
-{
-    public function visit(Book $book): void
-    {
-        echo 'Book visited';
-    }
-}
